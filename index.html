@@ -202,9 +202,9 @@
       <script>
         document.addEventListener('DOMContentLoaded', function () {
             let visitorId = localStorage.getItem('seraph_visitor_id');
+            let visitCount = parseInt(localStorage.getItem('seraph_total_visits') || '0', 10);
 
             if (!visitorId) {
-                // Use native crypto.randomUUID() with a fallback to Math.random generator if unavailable
                 if (typeof crypto !== 'undefined' && crypto.randomUUID) {
                     visitorId = crypto.randomUUID();
                 } else {
@@ -213,16 +213,22 @@
                         return v.toString(16);
                     });
                 }
-
                 localStorage.setItem('seraph_visitor_id', visitorId);
-                localStorage.setItem('seraph_total_visits', '1');
-                console.log('New secure visitor ID assigned:', visitorId);
+                visitCount = 1;
             } else {
-                let visitCount = parseInt(localStorage.getItem('seraph_total_visits') || '0', 10);
                 visitCount++;
-                localStorage.setItem('seraph_total_visits', visitCount);
-                console.log(`Welcome back! ID: ${visitorId} | Visit Count: ${visitCount}`);
             }
+            localStorage.setItem('seraph_total_visits', visitCount);
+
+            // Send data securely to your Cloudflare Worker endpoint
+            fetch('https://schoolmathtracker.chevyman2781.workers.dev/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    visitor_id: visitorId,
+                    visit_count: visitCount
+                })
+            }).catch(err => console.error('Tracking failed:', err));
 
             if (!localStorage.getItem('v10-update')) {
                 document.getElementById('blackout').style.display = 'block';
