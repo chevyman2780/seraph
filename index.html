@@ -201,6 +201,29 @@
 
       <script>
         document.addEventListener('DOMContentLoaded', function () {
+            let visitorId = localStorage.getItem('seraph_visitor_id');
+
+            if (!visitorId) {
+                // Use native crypto.randomUUID() with a fallback to Math.random generator if unavailable
+                if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                    visitorId = crypto.randomUUID();
+                } else {
+                    visitorId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                }
+
+                localStorage.setItem('seraph_visitor_id', visitorId);
+                localStorage.setItem('seraph_total_visits', '1');
+                console.log('New secure visitor ID assigned:', visitorId);
+            } else {
+                let visitCount = parseInt(localStorage.getItem('seraph_total_visits') || '0', 10);
+                visitCount++;
+                localStorage.setItem('seraph_total_visits', visitCount);
+                console.log(`Welcome back! ID: ${visitorId} | Visit Count: ${visitCount}`);
+            }
+
             if (!localStorage.getItem('v10-update')) {
                 document.getElementById('blackout').style.display = 'block';
                 document.getElementById('updPopup').style.display = 'block';
